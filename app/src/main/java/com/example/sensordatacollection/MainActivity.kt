@@ -16,6 +16,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import java.io.File
@@ -42,11 +43,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private var wayLatitude = 0.0
     private var wayLongitude = 0.0
     var i = 0
-    var c = 0
     var fileString = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        window.statusBarColor = ContextCompat.getColor(this, R.color.dark_mode_bg)
         MyFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         sensorManagers = getSystemService(SENSOR_SERVICE) as SensorManager
         sensorManagerG = getSystemService(SENSOR_SERVICE) as SensorManager
@@ -81,15 +83,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             )
             T.show()
         }
-        val theme = findViewById<View>(R.id.sw_theme) as Switch
-        theme.setOnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean ->
-            if (isChecked) {
-                c = 1
-            } else {
-                c = 0
-            }
-        }
-        val toggle = findViewById<View>(R.id.sw) as Switch
+        val toggle = findViewById<View>(R.id.startTracking) as Switch
         toggle.setOnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean ->
             if (isChecked) {
                 i = 1
@@ -187,18 +181,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             if (location != null) {
                 wayLatitude = location.getLatitude()
                 wayLongitude = location.getLongitude()
-                GPSx = findViewById<View>(R.id.gpsx) as TextView
+                GPSx = findViewById<View>(R.id.gpsLatitude) as TextView
                 GPSx!!.text = "" + wayLatitude
-                GPSy = findViewById<View>(R.id.gpsy) as TextView
+                GPSy = findViewById<View>(R.id.gpsLongitude) as TextView
                 GPSy!!.text = "" + wayLongitude
                 fileString = "$fileString$wayLatitude, $wayLongitude, "
-                GPS_loc = findViewById<View>(R.id.city) as TextView
-                GPS_loc!!.text = String.format(
-                    Locale.US,
-                    "%s -- %s",
-                    wayLatitude,
-                    wayLongitude
-                )
             }
         }
     }
@@ -216,13 +203,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 run {
                     GetNewLocation() //Just to update the location ;P
                     val sX = java.lang.Float.toString(gx)
-                    var text = findViewById<View>(R.id.gx) as TextView
+                    var text = findViewById<View>(R.id.gyroscopeX) as TextView
                     text.text = sX
                     val sY = java.lang.Float.toString(gy)
-                    text = findViewById<View>(R.id.gy) as TextView
+                    text = findViewById<View>(R.id.gyroscopeY) as TextView
                     text.text = sY
                     val sZ = java.lang.Float.toString(gz)
-                    text = findViewById<View>(R.id.gz) as TextView
+                    text = findViewById<View>(R.id.gyroscopeZ) as TextView
                     text.text = sZ
                     fileString = "$fileString$sX, $sY, $sZ, "
                 }
@@ -238,17 +225,17 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 lastUpdate = currentTime
                 run {
                     val sX = java.lang.Float.toString(x)
-                    var text = findViewById<View>(R.id.ax) as TextView
+                    var text = findViewById<View>(R.id.accelerometerX) as TextView
                     text.text = sX
                     val progressBar =
-                        findViewById<View>(R.id.progressBar) as ProgressBar
+                        findViewById<View>(R.id.gyroTilt) as ProgressBar
                     val progress = ((-1 * x + 10) * 10000).toInt()
                     progressBar.progress = progress
                     val sY = java.lang.Float.toString(y)
-                    text = findViewById<View>(R.id.ay) as TextView
+                    text = findViewById<View>(R.id.accelerometerY) as TextView
                     text.text = sY
                     val sZ = java.lang.Float.toString(z)
-                    text = findViewById<View>(R.id.az) as TextView
+                    text = findViewById<View>(R.id.accelerometerZ) as TextView
                     text.text = sZ
                     fileString = "$fileString$sX, $sY, $sZ\n"
                     FileWriters(fileString)

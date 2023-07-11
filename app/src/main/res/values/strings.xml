@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">Sensor Data Collection</string>
+    <string name="x">X</string>
+    <string name="gyroscope">Gyroscope</string>
+    <string name="accelerometer">Accelerometer</string>
+    <string name="y">Y</string>
+    <string name="z">Z</string>
+    <string name="default_value">0.0</string>
+    <string name="gps">GPS</string>
+    <string name="location">Location</string>
+    <string name="longitude">Longitude</string>
+    <string name="latitude">Latitude</string>
 </resources>
