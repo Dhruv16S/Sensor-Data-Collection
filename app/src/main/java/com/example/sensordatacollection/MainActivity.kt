@@ -19,12 +19,11 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import android.app.AlertDialog
+import android.os.Environment
+import android.widget.EditText
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Objects
 
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
@@ -98,18 +97,63 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             } else {
                 i = 0
                 onPause()
-                Log.d("Message", storedData)
-                WriteToFile(storedData)
+                writeToFile(storedData)
                 storedData = "Latitude, Longitude, Accelerometer (X), Accelerometer (Y), Accelerometer (Z), Gyroscope (X), Gyroscope (Y), Gyroscope (Z)\n"
                 fileString = ""
             }
         }
     }
 
-    private fun WriteToFile(str: String){
+    private fun writeToFile(data: String){
+        val builder = AlertDialog.Builder(this)
+        val inflater = layoutInflater
+        val dialogView = inflater.inflate(R.layout.custom_dialog, null)
+        val inputView = dialogView.findViewById<EditText>(R.id.dialog_input)
+
+        builder.setView(dialogView)
+        builder.setPositiveButton("OK") { _, _ ->
+            val filename = inputView.text.toString()
+            if (filename.isNotEmpty()) {
+                saveDataToFile(data, filename)
+            } else {
+                Toast.makeText(this, "Please enter a valid filename", Toast.LENGTH_SHORT).show()
+            }
+        }
+        builder.setNegativeButton("Cancel") { dialog, _ -> dialog.cancel() }
+        val dialog = builder.create()
+        dialog.show()
 
     }
-    private fun AppendData(str: String) {
+
+    private fun saveDataToFile(data: String, filename: String) {
+        val directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+
+        if (!directory.exists()) {
+            directory.mkdirs()
+        }
+
+        val file = File(directory, "$filename.csv")
+
+        try {
+            val fOut = FileOutputStream(file, true)
+            fOut.write(data.toByteArray())
+            fOut.flush()
+            fOut.close()
+            val savedPath = file.absolutePath
+            val toastMessage = "Data saved to Downloads"
+            Toast.makeText(this, toastMessage, Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error saving data: $e", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun isExternalStorageWritable(): Boolean {
+        val state = Environment.getExternalStorageState()
+        return Environment.MEDIA_MOUNTED == state
+    }
+
+
+    private fun appendData(str: String) {
         storedData += str
     }
 
@@ -209,7 +253,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     dispAz = sZ
                     if(!(dispLat.isEmpty() or dispLong.isEmpty() or dispAx.isEmpty() or dispAy.isEmpty() or dispAz.isEmpty() or dispGx.isEmpty() or dispGy.isEmpty() or dispGz.isEmpty())){
                         fileString = "$dispLat, $dispLong, $dispAx, $dispAy, $dispAz, $dispGx, $dispGy, $dispGz\n"
-                        AppendData(fileString)
+                        appendData(fileString)
                     }
                 }
             }
