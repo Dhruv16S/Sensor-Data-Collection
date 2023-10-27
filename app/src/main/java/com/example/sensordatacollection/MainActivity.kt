@@ -24,7 +24,6 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Locale
 import java.util.Objects
 
 
@@ -41,8 +40,17 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private val locationRequestCode = 1000
     private var wayLatitude = 0.0
     private var wayLongitude = 0.0
+    private var dispLat : String = ""
+    private var dispLong : String = ""
+    private var dispAx : String = ""
+    private var dispAy : String = ""
+    private var dispAz : String = ""
+    private var dispGx : String = ""
+    private var dispGy : String = ""
+    private var dispGz : String = ""
+    private var storedData : String = "Latitude, Longitude, Accelerometer (X), Accelerometer (Y), Accelerometer (Z), Gyroscope (X), Gyroscope (Y), Gyroscope (Z)\n"
     var i = 0
-    var fileString = ""
+    private var fileString = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -90,54 +98,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             } else {
                 i = 0
                 onPause()
+                Log.d("Message", storedData)
+                WriteToFile(storedData)
+                storedData = "Latitude, Longitude, Accelerometer (X), Accelerometer (Y), Accelerometer (Z), Gyroscope (X), Gyroscope (Y), Gyroscope (Z)\n"
+                fileString = ""
             }
         }
     }
 
-    fun FileWriters(str: String) {
-        val dateObj = SimpleDateFormat("dd/MM/yyyy")
-        val calendar = Calendar.getInstance()
-        val date = dateObj.format(calendar.time)
-        val path = File(Objects.requireNonNull(getExternalFilesDir(null))!!.absolutePath + "/DC_data")
-        if (!path.exists()) {
-            path.mkdirs()
-            val txt = findViewById<View>(R.id.city) as TextView
-            txt.text = date
-        }
-        val file = File(path, "DC_data.csv")
-        try {
-            if (!file.exists()) {
-                file.createNewFile()
-                val fOut = FileOutputStream(file, true)
-                //                OutputStreamWriter outWriter = new OutputStreamWriter(fOut);
-//                outWriter.append("GPS_Lat, GPS_Long, AX, AY, AZ, GX, GY, GZ\n");
-//                outWriter.close();
-                fOut.write(" AX, AY, AZ, GPS_Lat, GPS_Long, GX, GY, GZ\n".toByteArray())
-                //                fOut.flush();
-                fOut.close()
-            }
-            val fOut = FileOutputStream(file, true)
-            //            OutputStreamWriter outWriter = new OutputStreamWriter(fOut);
-//            outWriter.append(str);
-//
-//            outWriter.close();
-            fOut.write(str.toByteArray())
-            fOut.flush()
-            fOut.close()
-        } catch (e: IOException) {
-            Log.e("Exception", "File write failed")
-        }
-        fileString = ""
+    private fun WriteToFile(str: String){
 
-
-//        try {
-//            File file = new File(date + ".csv");
-//            if (!file.exists()){
-//                file.createNewFile();
-//            }
-//        }catch (IOException e){
-//            e.printStackTrace();
-//        }
+    }
+    private fun AppendData(str: String) {
+        storedData += str
     }
 
     override fun onPause() {
@@ -177,7 +150,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 GPSx!!.text = "" + wayLatitude
                 GPSy = findViewById<View>(R.id.gpsLongitude) as TextView
                 GPSy!!.text = "" + wayLongitude
-                fileString = "$fileString$wayLatitude, $wayLongitude, "
+                dispLat = wayLatitude.toString()
+                dispLong = wayLongitude.toString()
             }
         }
     }
@@ -203,7 +177,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     val sZ = java.lang.Float.toString(gz)
                     text = findViewById<View>(R.id.gyroscopeZ) as TextView
                     text.text = sZ
-                    fileString = "$fileString$sX, $sY, $sZ, "
+                    dispGx = sX
+                    dispGy = sY
+                    dispGz = sZ
                 }
             }
         }
@@ -213,7 +189,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             val z = sensorEvent.values[2]
             val currentTime = System.currentTimeMillis()
             if (currentTime - lastUpdate > 300) {
-                val timeDiff = currentTime - lastUpdate
                 lastUpdate = currentTime
                 run {
                     val sX = java.lang.Float.toString(x)
@@ -229,12 +204,16 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     val sZ = java.lang.Float.toString(z)
                     text = findViewById<View>(R.id.accelerometerZ) as TextView
                     text.text = sZ
-                    fileString = "$fileString$sX, $sY, $sZ\n"
-                    FileWriters(fileString)
+                    dispAx = sX
+                    dispAy = sY
+                    dispAz = sZ
+                    if(!(dispLat.isEmpty() or dispLong.isEmpty() or dispAx.isEmpty() or dispAy.isEmpty() or dispAz.isEmpty() or dispGx.isEmpty() or dispGy.isEmpty() or dispGz.isEmpty())){
+                        fileString = "$dispLat, $dispLong, $dispAx, $dispAy, $dispAz, $dispGx, $dispGy, $dispGz\n"
+                        AppendData(fileString)
+                    }
                 }
             }
         }
     }
-
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
 }
